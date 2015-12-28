@@ -239,6 +239,164 @@ EOF
     /usr/sbin/varnishd -P /var/run/varnish.pid -a :6081 -f /etc/varnish/default.vcl -T 127.0.0.1:6082 -t 120 -w 1,1000,120 -u varnish -g varnish -S /etc/varnish/secret -s file,/var/lib/varnish/varnish_storage.bin,1G
 }
 
+function install_config_haproxy()
+{
+    yum -y install haproxy
+    sed -i 's/log         127.0.0.1 local2/log         127.0.0.1 local0/g' /etc/haproxy/haproxy.cfg
+    mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bk
+    cat > /etc/rsyslog.d/haproxy.conf <<EOF
+\$ModLoad imudp
+\$UDPServerRun 514
+\$template Haproxy,"%msg%\n"
+local0.=info /var/log/haproxy.log;Haproxy
+local0.notice /var/log/haproxystatus.log;Haproxy
+local0.* ~
+EOF
+    cat /etc/haproxy/haproxy.cfg << EOF
+global
+    log         127.0.0.1 local0
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    stats socket /var/lib/haproxy/stats
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+listen webfarm *:81
+       mode http
+       stats enable
+       stats uri /haproxy?stats
+       stats realm Haproxy\ Statistics
+       stats auth haproxy:stats
+       balance roundrobin
+       cookie LBN insert indirect nocache
+       option httpclose
+       option forwardfor
+       server web01 192.168.1.9:80 cookie node1 check
+       server web02 192.168.1.7:80 cookie node2 check
+EOF
+    /etc/init.d/haproxy start
+}
+
+function install_config_squid()
+{
+    yum -y install squid
+    cat > /etc/squid/squid.conf << EOF
+########## Base control ##########
+cache_mgr admin@jedy.com
+visible_hostname squid.jedy.com
+http_port 0.0.0.0:82 accel vhost
+icp_port 0
+cache_mem 100 MB
+cache_dir ufs /var/spool/squid 100 16 256
+logformat combined %>a %ui %un [%tl] "%rm %ru HTTP/%rv" %>Hs %<st "%{Referer}>h" "%{User-Agent}>h" %Ss:%Sh
+access_log /var/log/squid/access_log combined
+cache_log /var/log/squid/cache_log
+cache_store_log none
+logfile_rotate 60                                                     # log轮循 60天
+#error_directory /usr/local/squid/share/errors/zh-cn          # 错误页面的语言
+#unlinkd_program /usr/local/squid/libexec/unlinkd                       # 指定文件删除进程的完整路径   我也没弄懂
+strip_query_terms off                                                  #在日志中记录URL的完整路径包含“？”后面的参数。
+#cache_vary on                                                           #支持http 1.1的动态压缩
+acl apache rep_header Server ^Apache
+#broken_vary_encoding allow apache
+########## Performance control ##########
+cache_swap_low 90
+cache_swap_high 95                                                                                 #cache目录的限值，超过总容量的85%时会自动清理
+maximum_object_size 4096 KB
+minimum_object_size 0 KB
+maximum_object_size_in_memory 2048 KB                              # 与内存有关的参数
+ipcache_size 2048                                               # 缓存dns的正反向解析
+ipcache_low 90
+ipcache_high 95
+cache_replacement_policy lru
+memory_replacement_policy lru
+#log_ip_on_direct on
+log_mime_hdrs off
+request_header_max_size 64 KB
+request_body_max_size 0 KB
+negative_ttl 5 minutes             # 错误页面缓存时间
+connect_timeout 1 minute
+read_timeout 1 minutes
+request_timeout 1 minutes
+client_lifetime 30 minutes
+half_closed_clients on
+#<refresh_pattern> <页面类型> <最小时间> <百分比> <最大时间>
+refresh_pattern -i \.htm$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.html$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.shtml$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.shtm$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.xml$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.jpg$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.jpeg$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.png$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.gif$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.bmp$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.css$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.js$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.swf$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.doc$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.ppt$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.xls$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.pdf$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.cab$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.exe$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.zip$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.dll$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.rar$ 1440 90% 129600 reload-into-ims
+refresh_pattern -i \.zip$ 1440 90% 129600 reload-into-ims
+refresh_pattern . 0 0% 0
+acl purge method PURGE
+acl QUERY urlpath_regex cgi-bin .php .cgi .asp .jsp .do
+##acl all src all                                 \squid 3.0后 默认设置好了，不用另加，否则起不来
+acl testip src 127.0.0.1/32 192.168.10.0/24
+acl testdst dstdomain .wochacha.com
+###### Reverse proxy###########
+#<cache_peer> <主机名称> <类别> <http_port> <icp_port> <其它参数>
+cache_peer 192.168.1.7 parent 80 0 no-query originserver name=ec
+cache_peer 192.168.1.9 parent 80 0 no-query originserver name=mall
+cache_peer_domain ec ec.alpha.wochacha.com
+cache_peer_domain mall mall.alpha.wochacha.com
+
+#<cache_peer_access> <上层 Proxy > <allow|deny> <acl名称>
+cache_peer_access ec allow all
+cache_peer_access mall allow testip
+
+########## Access control ############
+http_access allow QUERY
+#http_access allow purge master
+http_access allow testdst
+http_access deny all
+cache deny QUERY
+hierarchy_stoplist cgi-bin ?
+acl CactiServer src 192.168.20.11
+acl SNMP snmp_community public                       # 允许snmp通过
+snmp_port 3401
+snmp_access allow SNMP CactiServer
+snmp_access deny all
+EOF
+}
+
 function install_config_mycat()
 {
     wget 'https://raw.githubusercontent.com/MyCATApache/Mycat-download/master/1.4-RELEASE/Mycat-server-1.4-release-20151019230038-linux.tar.gz' --no-check-certificate    tar -zxvf Mycat-server-2.0-dev-20151218210146-linux.tar.gz
