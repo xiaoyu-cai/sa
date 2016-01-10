@@ -12,12 +12,12 @@ class RemoteOps():
     def __init__(self):
         self.server_info = [
             {
-                'ip': '192.168.1.9',
-                'password': '2323232',
+                'ip': '192.168.1.7',
+                'password': 'wzec%tgbnm',
             },
             {
                 'ip': '192.168.1.7',
-                'password': 'efsesf',
+                'password': 'wzec%tgbnm',
             }
         ]
 
@@ -56,25 +56,25 @@ class RemoteOps():
         for server in self.server_info:
             print "\nrun script on host %s" % server['ip']
             ssh = pexpect.spawn('ssh root@%s "%s"' % (server['ip'], cmd))
-            i = ssh.expect(['password:', 'continue connecting (yes/no)?'], timeout=200)
-            if i == 0 :
-                print "Need Password"
-                ssh.sendline(server['password'])
-            elif i == 1:
-                ssh.sendline('yes\n')
-                ssh.expect('password: ')
-                ssh.sendline(server['password'])
-                ssh.sendline(cmd)
-                r = ssh.read()
-                print r
-            print "done"
             try:
-                pass
+                i = ssh.expect(['password:', 'continue connecting (yes/no)?'], timeout=200)
+                if i == 0 :
+                    print "Need Password"
+                    ssh.sendline(server['password'])
+                elif i == 1:
+                    ssh.sendline('yes\n')
+                    ssh.expect('password: ')
+                    ssh.sendline(server['password'])
+                    ssh.sendline(cmd)
+                    r = ssh.read()
+                    print r
+                print "done"
+
             except pexpect.EOF:
-                print("run_script %cmd on %s EOF" % (cmd, server['ip']))
+                print("run_script %s on %s EOF" % (cmd, server['ip']))
                 ssh.close()
             except pexpect.TIMEOUT:
-                print("run_script %cmd on %s TIMEOUT" % (cmd, server['ip']))
+                print("run_script %s on %s TIMEOUT" % (cmd, server['ip']))
                 ssh.close()
 
 def usage():
@@ -89,6 +89,7 @@ def usage():
 if __name__ == '__main__':
     usage()
     script=sys.argv[1]
+    arg = ''
     if len(sys.argv) > 2:
         arg = ' '.join(sys.argv[2:])
 
@@ -100,7 +101,7 @@ if __name__ == '__main__':
     remote_ops = RemoteOps()
     remote_ops.scp_script(src_file, dst_file)
 
-    cmd = "chmod +x %s;sh %s %s" % (dst_file, dst_file, arg)
+    cmd = "chmod +x %s;python %s %s" % (dst_file, dst_file, arg)
     remote_ops.run_script(cmd)
 else:
   version="0.1"

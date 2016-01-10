@@ -1,0 +1,101 @@
+SELECT cat_name FROM `sdb_b2c_goods_cat` WHERE 1 AND  `sdb_b2c_goods_cat`.cat_id in ('601')  LIMIT 0, 1;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187101
+# Query_time: 2.853315  Lock_time: 0.000115 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select image_id,url,s_url,m_url,l_url,last_modified,width,height from sdb_image_image where image_id in('7b00a59002f703dc766ac35cef286e4b');
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187381
+# Query_time: 6.460182  Lock_time: 0.000053 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select image_id,url,s_url,m_url,l_url,last_modified,width,height from sdb_image_image where image_id in('e5427c0fe2043afa51b35479747bb154');
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187764
+# Query_time: 4.955739  Lock_time: 0.000059 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select image_id,url,s_url,m_url,l_url,last_modified,width,height from sdb_image_image where image_id in('a0081aae9da382b9a851375190646c7f');
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20186854
+# Query_time: 2.853377  Lock_time: 0.000048 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select image_id,url,s_url,m_url,l_url,last_modified,width,height from sdb_image_image where image_id in('4267a204f4d683fab1836b27d3d36f1b');
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187325
+# Query_time: 4.959181  Lock_time: 0.000090 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1452398385;
+SELECT r.tbl_name,r.col_name,v.pk,v.value
+        FROM sdb_dbeav_meta_value_int v
+        LEFT JOIN sdb_dbeav_meta_register r
+        ON v.mr_id=r.mr_id
+        WHERE v.mr_id='11'
+        AND v.pk in (3547205);
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187683
+# Query_time: 8.559481  Lock_time: 0.000133 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1452398385;
+SELECT r.tbl_name,r.col_name,v.pk,v.value
+        FROM sdb_dbeav_meta_value_int v
+        LEFT JOIN sdb_dbeav_meta_register r
+        ON v.mr_id=r.mr_id
+        WHERE v.mr_id='11'
+        AND v.pk in (5758097);
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187787
+# Query_time: 2.853106  Lock_time: 0.000133 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1452398385;
+SELECT r.tbl_name,r.col_name,v.pk,v.value
+        FROM sdb_dbeav_meta_value_int v
+        LEFT JOIN sdb_dbeav_meta_register r
+        ON v.mr_id=r.mr_id
+        WHERE v.mr_id='5'
+        AND v.pk in (6779427);
+# User@Host: ecstore[ecstore] @  [172.21.104.4]  Id: 20187666
+# Query_time: 4.355383  Lock_time: 0.000144 Rows_sent: 5  Rows_examined: 10
+SET timestamp=1452398385;
+SELECT method,request_time,target,ip,memo,type,is_pass FROM sdb_b2c_message_log WHERE target='18313946397' AND (request_time BETWEEN 1452355200 AND 1452398380) AND is_pass='true' ORDER BY request_time DESC;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187925
+# Query_time: 2.552965  Lock_time: 0.000112 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+SELECT events_name, events_start_time, events_end_time FROM `sdb_events_events` WHERE 1 AND  `sdb_events_events`.events_id in ('621')  LIMIT 0, 1;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187488
+# Query_time: 14.420348  Lock_time: 0.000055 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1452398385;
+select id from `sdb_base_kvstore` where 1 AND `prefix` = "sessions" AND `key` = "feeded775f5cfcc36075e299c74fe772" LIMIT 0, 18446744073709551615;
+# User@Host: ecstore[ecstore] @  [172.21.104.4]  Id: 20187679
+# Query_time: 72.396679  Lock_time: 0.000090 Rows_sent: 0  Rows_examined: 5223263
+SET timestamp=1452398385;
+SELECT member_id FROM `sdb_b2c_members` WHERE 1 AND `sdb_b2c_members`.mobile = '13389606951' ORDER BY regtime DESC LIMIT 0, 18446744073709551615;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187468
+# Query_time: 2.552528  Lock_time: 0.000042 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select image_id,url,s_url,m_url,l_url,last_modified,width,height from sdb_image_image where image_id in('9b6be7cf2ad7834813c84f396eb65165');
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187893
+# Query_time: 2.552984  Lock_time: 0.000064 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+SELECT cat_id, name, image_default_id AS image, mktprice AS mkprice, buy_count AS salenum FROM `sdb_b2c_goods` WHERE  `sdb_b2c_goods`.goods_id IN (8993) AND `sdb_b2c_goods`.goods_type='normal' ORDER BY d_order  DESC ,goods_id  DESC LIMIT 0, 1;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187281
+# Query_time: 2.553228  Lock_time: 0.000043 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+SELECT events_name FROM `sdb_events_events` WHERE 1 AND  `sdb_events_events`.events_id in ('467')  LIMIT 0, 1;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187142
+# Query_time: 3.154425  Lock_time: 0.000049 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select image_id,url,s_url,m_url,l_url,last_modified,width,height from sdb_image_image where image_id in('f222d89b2367e7c93ed475c7f9a25aa4');
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187674
+# Query_time: 2.553003  Lock_time: 0.000064 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select image_id,url,s_url,m_url,l_url,last_modified,width,height from sdb_image_image where image_id in('4e965d06ba441601129c8d2c5ee59e47');
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20186725
+# Query_time: 3.453931  Lock_time: 0.000112 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+SELECT pinpaijie_main_name,pinpaijie_minor_name FROM `sdb_mobile_pinpaijie` WHERE 1 LIMIT 0, 1;
+# User@Host: ecstore[ecstore] @  [172.21.104.4]  Id: 20187774
+# Query_time: 44.042081  Lock_time: 0.000104 Rows_sent: 0  Rows_examined: 5223264
+SET timestamp=1452398385;
+SELECT member_id FROM `sdb_b2c_members` WHERE 1 AND `sdb_b2c_members`.mobile = '13754270998' ORDER BY regtime DESC LIMIT 0, 18446744073709551615;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187472
+# Query_time: 11.863596  Lock_time: 0.000152 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select p.login_name,m.member_id,m.name,m.sex,m.point,m.experience,m.email,m.member_lv_id,cur,advance,m.seller
+        from sdb_b2c_members as m left join sdb_pam_account as p on m.member_id = p.account_id where m.member_id=1240521 LIMIT 0, 1;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20187460
+# Query_time: 14.867645  Lock_time: 0.000071 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1452398385;
+SELECT * FROM sdb_b2c_member_point WHERE change_point > 0 AND (expiretime > 1452355200 OR expiretime='0') AND member_id = 10780147;
+# User@Host: ecstore[ecstore] @  [172.21.14.2]  Id: 20185786
+# Query_time: 21.783929  Lock_time: 0.000138 Rows_sent: 1  Rows_examined: 1
+SET timestamp=1452398385;
+select image_id,url,s_url,m_url,l_url,last_modified,width,height from sdb_image_image where image_id in('b11c0024025555c6df4456d9e5d21bef');

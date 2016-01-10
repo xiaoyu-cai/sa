@@ -159,3 +159,27 @@ clientMainAgent.sinkgroups.g1.processor.selector  = random
 EOF
     /usr/local/flume/bin/flume-ng agent --conf /usr/local/flume/conf -f /usr/local/flume/conf/flume_consolidation.conf -n clientMainAgent -Dflume.root.logger=DEBUG,console
 }
+
+function config_zookeeper()
+{
+    wget 'http://archive.apache.org/dist/zookeeper/zookeeper-3.4.5/zookeeper-3.4.5.tar.gz'
+    tar -zxvf zookeeper-3.4.5.tar.gz
+    mv zookeeper-3.4.5 /usr/local/zookeeper
+    cat > /usr/local/zookeeper/conf/zoo.cfg <<EOF
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/usr/local/zookeeper/data
+dataLogDir=/usr/local/zookeeper/logs
+clientPort=2181
+EOF
+    /usr/local/zookeeper/bin/zkServer.sh start
+}
+
+function config_hbase()
+{
+    wget 'http://archive.apache.org/dist/hbase/hbase-0.96.0/hbase-0.96.0-hadoop2-bin.tar.gz'
+    tar -zxvf hbase-0.96.0-hadoop2-bin.tar.gz
+    mv hbase-0.96.0-hadoop2 /usr/local/hbase
+
+}
