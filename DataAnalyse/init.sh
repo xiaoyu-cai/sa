@@ -176,10 +176,402 @@ EOF
     /usr/local/zookeeper/bin/zkServer.sh start
 }
 
+function config_hadoop()
+{
+    wget 'https://archive.apache.org/dist/hadoop/common/hadoop-2.2.0/hadoop-2.2.0.tar.gz'
+    tar -zxvf hadoop-2.2.0.tar.gz
+    mv hadoop-2.2.0 /usr/local/hadoop
+    cd /usr/local/hadoop/etc/hadoop
+    sed  -i 's/export JAVA_HOME=.*/export JAVA_HOME=\/usr\/local\/jdk/g' hadoop-env.sh
+    cat > core-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+<property>
+<name>fs.defaultFS</name>
+<value>hdfs://127.0.0.1:8020</value>
+<final>true</final>
+</property>
+<property>
+<name>hadoop.tmp.dir</name>
+<value>/usr/local/hadoop/tmp</value>
+<final>true</final>
+</property>
+ <property>
+   <name>dfs.namenode.checkpoint.dir</name>
+   <value>/usr/local/hadoop/secondname</value>
+ </property>
+<property>
+ <name>fs.trash.interval</name>
+ <value>1440</value>
+</property>
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+<property>
+  <name>io.compression.codecs</name>
+  <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec,org.apache.hadoop.io.compress.BZip2Codec</value>
+</property>
+<property>
+  <name>io.compression.codec.lzo.class</name>
+  <value>com.hadoop.compression.lzo.LzoCodec</value>
+</property>
+<property>
+  <name>io.native.lib.available</name>
+  <value>true</value>
+  <description>Should native hadoop libraries, if present, be used.</description>
+</property>
+</configuration>
+EOF
+    mkdir -p /usr/local/hadoop/tmp
+    mkdir -p /usr/local/hadoop/secondname
+
+    cat > hdfs-site.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+	<property>
+		<name>dfs.namenode.name.dir</name>
+		<value>/usr/local/hadoop/name</value>
+		<final>true</final>
+	</property>
+	<property>
+		<name>dfs.datanode.data.dir</name>
+		<value>/usr/local/hadoop/data</value>
+		<final>true</final>
+	</property>
+	<property>
+		<name>dfs.replication</name>
+		<value>1</value>
+	</property>
+	<property>
+		<name>dfs.datanode.max.transfer.threads</name>
+		<value>4096</value>
+	</property>
+	<property>
+		<name>dfs.datanode.du.reserved</name>
+		<value>93049856</value>
+		<description>Reserved space in bytes per volume. Always leave this much space free for non dfs use.
+		</description>
+	</property>
+	<property>
+		<name>dfs.support.append</name>
+		<value>true</value>
+	</property>
+</configuration>
+EOF
+    mkdir -p /usr/local/hadoop/name
+    mkdir -p /usr/local/hadoop/data
+
+    cat > mapred-site.xml <<EOF
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+ <property>
+   <name>mapreduce.framework.name</name>
+   <value>yarn</value>
+ </property>
+ <property>
+   <name>mapred.system.dir</name>
+   <value>/usr/local/hadoop/mapred/system</value>
+   <final>true</final>
+  </property>
+ <property>
+   <name>mapred.local.dir</name>
+   <value>/usr/local/hadoop/mapred/local</value>
+   <final>true</final>
+ </property>
+ <property>
+    <name>mapreduce.jobtracker.address</name>
+    <value>localhost:9001</value>
+ </property>
+
+<property>
+    <name>mapreduce.jobtracker.http.address</name>
+    <value>localhost:50030</value>
+ </property>
+<property>
+    <name>mapreduce.jobhistory.address</name>
+    <value>localhost:10020</value>
+ </property>
+ <property>
+    <name>mapreduce.jobhistory.webapp.address</name>
+    <value>localhost:19888</value>
+ </property>
+ <property>
+    <name>mapreduce.jobhistory.intermediate-done-dir</name>
+    <value>/mr-history/tmp</value>
+ </property>
+ <property>
+    <name>mapreduce.jobhistory.done-dir</name>
+    <value>/mr-history/done</value>
+ </property>
+
+ <property>
+   <name>mapreduce.map.output.compress</name>
+   <value>true</value>
+ </property>
+ <property>
+   <name>mapreduce.map.output.compress.codec</name>
+   <value>com.hadoop.compression.lzo.LzoCodec</value>
+ </property>
+ <property>
+    <name>mapreduce.map.memory.mb</name>
+    <value>400</value>
+  </property>
+ <property>
+    <name>mapreduce.map.java.opts</name>
+    <value>-Xmx400M</value>
+ </property>
+ <property>
+    <name>mapreduce.reduce.memory.mb</name>
+    <value>1500</value>
+ </property>
+ <property>
+    <name>mapreduce.reduce.java.opts</name>
+    <value>-Xmx1024M</value>
+ </property>
+ <property>
+     <name>mapreduce.task.timeout</name>
+     <value>7200000</value>
+     <final>true</final>
+ </property>
+<property>
+    <name>mapreduce.task.io.sort.factor</name>
+    <value>100</value>
+    <final>true</final>
+  </property>
+  <property>
+    <name>mapreduce.task.io.sort.mb</name>
+    <value>150</value>
+    <final>true</final>
+  </property>
+  <property>
+    <name>io.file.buffer.size</name>
+    <value>65536</value>
+    <final>true</final>
+  </property>
+  <property>
+    <name>mapreduce.reduce.shuffle.parallelcopies</name>
+    <value>5</value>
+    <final>true</final>
+  </property>
+  <property>
+    <name>mapreduce.reduce.merge.inmem.threshold</name>
+    <value>0</value>
+    <final>true</final>
+  </property>
+</configuration>
+EOF
+    mkdir -p /usr/local/hadoop/mapred/system
+    mkdir -p /usr/local/hadoop/mapred/local
+    sed -i  -e '/IFS=/a\export HADOOP_COMMON_LIB_NATIVE_DIR=\/usr\/local\/hadoop\/lib\/native\nexport HADOOP_OPTS="-Djava.library.path=\/usr\/local\/hadoop\/lib"' yarn-env.sh
+
+    cat > yarn-site.xml <<EOF
+<?xml version="1.0"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<configuration>
+
+<!-- Site specific YARN configuration properties -->
+ <property>
+  <name>yarn.nodemanager.aux-services</name>
+  <value>mapreduce_shuffle</value>
+ </property>
+ <property>
+  <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+  <value>org.apache.mapred.ShuffleHandler</value>
+ </property>
+ <property>
+  <name>yarn.resourcemanager.scheduler.class</name>
+  <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+  <description>In case you do not want to use the default scheduler</description>
+ </property>
+ <property>
+    <name>yarn.resourcemanager.webapp.address</name>
+    <value>localhost:8088</value>
+  </property>
+ <property>
+    <name>yarn.resourcemanager.resource-tracker.address</name>
+    <value>localhost:8025</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.scheduler.address</name>
+    <value>localhost:8030</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.address</name>
+    <value>localhost:8040</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.localizer.address</name>
+    <value>localhost:8041</value>
+  </property>
+ <property>
+    <name>yarn.resourcemanager.admin.address</name>
+    <value>localhost:8033</value>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>5120</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>800</value>
+  </property>
+
+</configuration>
+EOF
+    /usr/local/hadoop/bin/hdfs namenode -format
+    /usr/local/hadoop/sbin/start-yarn.sh
+    /usr/local/hadoop/sbin/start-dfs.sh
+}
+
 function config_hbase()
 {
     wget 'http://archive.apache.org/dist/hbase/hbase-0.96.0/hbase-0.96.0-hadoop2-bin.tar.gz'
     tar -zxvf hbase-0.96.0-hadoop2-bin.tar.gz
     mv hbase-0.96.0-hadoop2 /usr/local/hbase
-
+    cat > /usr/local/hbase/conf/hbase-site.xml <<EOF
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+*
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+-->
+<configuration>
+		<property>
+				<name>hbase.rootdir</name>
+				<value>hdfs://127.0.0.1:8020/hbase</value>
+		</property>
+		<property>
+				<name>hbase.cluster.distributed</name>
+				<value>true</value>
+		</property>
+		<property>
+				<name>hbase.zookeeper.quorum</name>
+				<value>127.0.0.1</value>
+		</property>
+		<property>
+				<name>zookeeper.session.timeout</name>
+				<value>60000</value>
+		</property>
+		<property>
+				<name>hbase.zookeeper.property.clientPort</name>
+				<value>2181</value>
+		</property>
+		<property>
+				<name>hbase.tmp.dir</name>
+				<value>/usr/local/hbase/tmp</value>
+				<description>Temporary directory on the local filesystem.</description>
+		</property>
+		<property>
+				<name>hbase.client.keyvalue.maxsize</name>
+				<value>10485760</value>
+		</property>
+		<property>
+				<name>hbase.regionserver.lease.period</name>
+				<value>240000</value>
+		</property>
+</configuration>
+EOF
+    cd /usr/local/hbase/lib
+    \cp /usr/local/hadoop/share/hadoop/common/lib/hadoop-annotations-2.2.0.jar .
+    \rm hadoop-annotations-2.1.0-beta.jar
+    \cp /usr/local/hadoop/share/hadoop/common/lib/hadoop-auth-2.2.0.jar .
+    \cp /usr/local/hadoop/share/hadoop/common/hadoop-common-2.2.0.jar .
+    \cp /usr/local/hadoop/share/hadoop/hdfs/hadoop-hdfs-2.2.0.jar .
+    \cp /usr/local/hadoop/share/hadoop/hdfs/hadoop-hdfs-2.2.0-tests.jar .
+    \rm hadoop-hdfs-2.1.0-beta-tests.jar
+    \cp /usr/local/hadoop/share/hadoop/common/hadoop-lzo-0.4.20-SNAPSHOT.jar .
+    \rm hadoop-mapreduce-client-*
+    \cp /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-client-* .
+    \cp /usr/local/hadoop/share/hadoop/yarn/hadoop-yarn-api-2.2.0.jar .
+    \rm hadoop-yarn-api-2.1.0-beta.jar
+    \cp /usr/local/hadoop/share/hadoop/yarn/hadoop-yarn-client-2.2.0.jar .
+    \rm hadoop-yarn-client-2.1.0-beta.jar
+    \cp /usr/local/hadoop/share/hadoop/yarn/hadoop-yarn-common-2.2.0.jar .
+    \rm hadoop-yarn-common-2.1.0-beta.jar
+    \cp /usr/local/hadoop/share/hadoop/yarn/hadoop-yarn-server-common-2.2.0.jar .
+    \rm hadoop-yarn-server-common-2.1.0-beta.jar
+    \cp /usr/local/hadoop/share/hadoop/yarn/hadoop-yarn-server-nodemanager-2.2.0.jar .
+    \rm hadoop-yarn-server-nodemanager-2.1.0-beta.jar
+    /usr/local/hbase/bin/start-hbase.sh
 }
