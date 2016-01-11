@@ -575,3 +575,31 @@ EOF
     \rm hadoop-yarn-server-nodemanager-2.1.0-beta.jar
     /usr/local/hbase/bin/start-hbase.sh
 }
+
+function config_sqoop()
+{
+    wget 'http://mirror.bit.edu.cn/apache/sqoop/1.99.6/sqoop-1.99.6-bin-hadoop200.tar.gz'
+    tar -zxvf sqoop-1.99.6-bin-hadoop200.tar.gz
+    mv sqoop-1.99.6-bin-hadoop200 /usr/local/sqoop
+    wget 'http://mirror.bit.edu.cn/apache/sqoop/1.4.6/sqoop-1.4.6.bin__hadoop-2.0.4-alpha.tar.gz'
+    bin/sqoop import --connect jdbc:mysql://127.0.0.1/wochacha_test \
+    --username root --password wochacha \
+    --query "select *from sdb_b2c_orders where 1=1 and \$CONDITIONS" \
+    --hbase-table orders --hbase-create-table --hbase-row-key order_id \
+    --split-by order_id --column-family b2c
+}
+
+function config_thrift()
+{
+    tar -zxvf thrift-0.9.3.tar.gz
+    cd thrift-0.9.3
+    ./configure
+    make install
+    cd /usr/src/
+    wget 'http://archive.apache.org/dist/hbase/hbase-0.96.0/hbase-0.96.0-src.tar.gz'
+    tar -zxvf hbase-0.96.0-src.tar.gz
+    thrift --gen py /usr/src/hbase-0.96.0/hbase-thrift/src/main/resources/org/apache/hadoop/hbase/thrift/Hbase.thrift
+    cp -r gen-py/hbase/ /usr/local/python/lib/python2.7/site-packages/
+    pip install thrift
+    nohup /usr/local/hbase/bin/hbase thrift -p 9090 start > /dev/null 2>&1 &
+}
