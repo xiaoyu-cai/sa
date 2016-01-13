@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+COLOR_RED="\033[0;31m"
+COLOR_YELLOW="\033[0;33m"
+COLOR_GREEN="\033[0;32m"
+COLOR_RESET="\033[0m"
+
 function config_flume_server()
 {
     wget 'http://mirrors.cnnic.cn/apache/flume/1.6.0/apache-flume-1.6.0-bin.tar.gz'
@@ -107,6 +112,32 @@ collectorMainAgent.sinks.k1.hdfs.idleTimeout = 3600
 EOF
     #/usr/local/flume/bin/flume-ng agent --conf /usr/local/flume/conf -f /usr/local/flume/conf/flume_directHDFS.conf -n agent1 -Dflume.root.logger=DEBUG,console
     /usr/local/flume/bin/flume-ng agent --conf /usr/local/flume/conf -f /usr/local/flume/conf/flume_consolidation.conf -n collectorMainAgent -Dflume.root.logger=DEBUG,console
+
+    cat > /usr/local/flume/conf/flume_kafka.conf <<EOF
+# example.conf: A single-node Flume configuration
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+# Describe/configure the source
+a1.sources.r1.type = exec
+a1.sources.r1.command = tail -F /usr/local/webserver/nginx/logs/test.log
+# Describe the sink
+a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink
+a1.sinks.k1.topic = mytopic
+a1.sinks.k1.brokerList = localhost:9096
+a1.sinks.k1.requiredAcks = 1
+a1.sinks.k1.batchSize = 20
+a1.sinks.k1.channel = c1
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1
+EOF
+    /usr/local/flume/bin/flume-ng agent --conf /usr/local/flume/conf -f /usr/local/flume/conf/flume_kafka.conf -n a1 -Dflume.root.logger=DEBUG,console
 }
 
 function config_flume_client()
@@ -158,6 +189,7 @@ clientMainAgent.sinkgroups.g1.processor.backoff   = true
 clientMainAgent.sinkgroups.g1.processor.selector  = random
 EOF
     /usr/local/flume/bin/flume-ng agent --conf /usr/local/flume/conf -f /usr/local/flume/conf/flume_consolidation.conf -n clientMainAgent -Dflume.root.logger=DEBUG,console
+
 }
 
 function config_zookeeper()
@@ -602,4 +634,66 @@ function config_thrift()
     cp -r gen-py/hbase/ /usr/local/python/lib/python2.7/site-packages/
     pip install thrift
     nohup /usr/local/hbase/bin/hbase thrift -p 9090 start > /dev/null 2>&1 &
+}
+
+function config_spark()
+{
+    cd /usr/src/
+    wget 'http://downloads.typesafe.com/scala/2.11.7/scala-2.11.7.tgz?_ga=1.43040546.661250126.1452564382'
+    #/usr/local/spark/bin/spark-shell
+    #val file = sc.textFile("hdfs://127.0.0.1:8020/spark/out")
+    #val result = file.flatMap(line => line.split("\\s+.*")).map(word => (word, 1)).reduceByKey((a, b) => a + b)
+    #result.saveAsTextFile("hdfs://127.0.0.1:8020/spark/ip")
+}
+
+function config_kafka()
+{
+    echo -e "$COLOR_YELLOW start download kafka $COLOR_RESET"
+    wget 'http://mirrors.hust.edu.cn/apache/kafka/0.8.1.1/kafka_2.10-0.8.1.1.tgz'
+    tar -zxvf kafka_2.10-0.8.1.1.tgz
+    mv kafka_2.10-0.8.1.1 /usr/local/kafka
+    cat > /usr/local/kafka/config/server-1.properties << EOF
+broker.id=4
+port=9096
+num.threads=8
+socket.send.buffer=1048576
+socket.receive.buffer=1048576
+max.socket.request.bytes=104857600
+log.dir=/usr/local/kafka/kafka-logs-1
+num.partitions=1
+log.flush.interval=10000
+log.default.flush.interval.ms=1000
+log.default.flush.scheduler.interval.ms=1000
+log.retention.hours=168
+log.file.size=536870912
+log.cleanup.interval.mins=1
+enable.zookeeper=true
+zookeeper.connect=127.0.0.1:2181
+zookeeper.connectiontimeout.ms=1000000
+EOF
+    cat > /usr/local/kafka/config/server-2.properties << EOF
+brokerid=5
+port=9097
+num.threads=8
+socket.send.buffer=1048576
+socket.receive.buffer=1048576
+max.socket.request.bytes=104857600
+log.dir=/usr/local/kafka/kafka-logs-2
+num.partitions=1
+log.flush.interval=10000
+log.default.flush.interval.ms=1000
+log.default.flush.scheduler.interval.ms=1000
+log.retention.hours=168
+log.file.size=536870912
+log.cleanup.interval.mins=1
+enable.zookeeper=true
+zookeeper.connect=127.0.0.1:2181
+zookeeper.connectiontimeout.ms=1000000
+EOF
+    mkdir -p /usr/local/kafka/kafka-logs-1 /usr/local/kafka/kafka-logs-2
+    #/usr/local/kafka/sbt update
+    #/usr/local/kafka/sbt package
+    #sed -i 's/export JMX_PORT=${JMX_PORT:-9999}/#export JMX_PORT=${JMX_PORT:-9999}/g' /usr/local/kafka/bin/kafka-server-start.sh
+    nohup /usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server-1.properties >/dev/null 2>&1 &
+    nohup /usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server-2.properties >/dev/null 2>&1 &
 }
