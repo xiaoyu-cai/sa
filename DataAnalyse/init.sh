@@ -649,9 +649,9 @@ function config_spark()
 function config_kafka()
 {
     echo -e "$COLOR_YELLOW start download kafka $COLOR_RESET"
-    wget 'http://mirrors.hust.edu.cn/apache/kafka/0.8.1.1/kafka_2.10-0.8.1.1.tgz'
-    tar -zxvf kafka_2.10-0.8.1.1.tgz
-    mv kafka_2.10-0.8.1.1 /usr/local/kafka
+    wget 'http://mirrors.cnnic.cn/apache/kafka/0.8.2.0/kafka_2.10-0.8.2.0.tgz'
+    tar -zxvf kafka_2.10-0.8.2.0.tgz
+    mv kafka_2.10-0.8.2.0 /usr/local/kafka
     cat > /usr/local/kafka/config/server-1.properties << EOF
 broker.id=4
 port=9096
@@ -670,9 +670,10 @@ log.cleanup.interval.mins=1
 enable.zookeeper=true
 zookeeper.connect=127.0.0.1:2181
 zookeeper.connectiontimeout.ms=1000000
+delete.topic.enable=true
 EOF
     cat > /usr/local/kafka/config/server-2.properties << EOF
-brokerid=5
+broker.id=5
 port=9097
 num.threads=8
 socket.send.buffer=1048576
@@ -689,6 +690,7 @@ log.cleanup.interval.mins=1
 enable.zookeeper=true
 zookeeper.connect=127.0.0.1:2181
 zookeeper.connectiontimeout.ms=1000000
+delete.topic.enable=true
 EOF
     mkdir -p /usr/local/kafka/kafka-logs-1 /usr/local/kafka/kafka-logs-2
     #/usr/local/kafka/sbt update
@@ -696,4 +698,6 @@ EOF
     #sed -i 's/export JMX_PORT=${JMX_PORT:-9999}/#export JMX_PORT=${JMX_PORT:-9999}/g' /usr/local/kafka/bin/kafka-server-start.sh
     nohup /usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server-1.properties >/dev/null 2>&1 &
     nohup /usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server-2.properties >/dev/null 2>&1 &
+    #/usr/local/kafka/bin/kafka-topics.sh --zookeeper 127.0.0.1:2181 --delete --topic mytopic
+    #/usr/local/kafka/bin/kafka-topics.sh --create --zookeeper 127.0.0.1:2181 --replication-factor 1 --partitions 1 --topic mytopic
 }
