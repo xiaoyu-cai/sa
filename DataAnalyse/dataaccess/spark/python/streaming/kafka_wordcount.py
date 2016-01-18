@@ -50,7 +50,7 @@ if __name__ == "__main__":
     counts = lines.flatMap(lambda line: line.split(" ")) \
         .map(lambda word: (word, 1)) \
         .reduceByKey(lambda a, b: a+b)
-    counts.pprint()
+    counts.pprint(100)
 
     ssc.start()
     ssc.awaitTermination()

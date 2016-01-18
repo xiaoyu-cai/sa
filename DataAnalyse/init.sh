@@ -644,6 +644,7 @@ function config_spark()
     #val file = sc.textFile("hdfs://127.0.0.1:8020/spark/out")
     #val result = file.flatMap(line => line.split("\\s+.*")).map(word => (word, 1)).reduceByKey((a, b) => a + b)
     #result.saveAsTextFile("hdfs://127.0.0.1:8020/spark/ip")
+    wget 'https://repo1.maven.org/maven2/org/apache/spark/spark-streaming-kafka-assembly_2.10/1.6.0/spark-streaming-kafka-assembly_2.10-1.6.0.jar'
 }
 
 function config_kafka()
