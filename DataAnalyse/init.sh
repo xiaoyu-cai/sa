@@ -237,7 +237,7 @@ function config_hadoop()
 <configuration>
 <property>
 <name>fs.defaultFS</name>
-<value>hdfs://127.0.0.1:8020</value>
+<value>hdfs://localhost:8020</value>
 <final>true</final>
 </property>
 <property>
@@ -551,7 +551,7 @@ function config_hbase()
 <configuration>
 		<property>
 				<name>hbase.rootdir</name>
-				<value>hdfs://127.0.0.1:8020/hbase</value>
+				<value>hdfs://localhost:8020/hbase</value>
 		</property>
 		<property>
 				<name>hbase.cluster.distributed</name>
@@ -559,7 +559,7 @@ function config_hbase()
 		</property>
 		<property>
 				<name>hbase.zookeeper.quorum</name>
-				<value>127.0.0.1</value>
+				<value>localhost</value>
 		</property>
 		<property>
 				<name>zookeeper.session.timeout</name>
@@ -610,15 +610,26 @@ EOF
 
 function config_sqoop()
 {
-    wget 'http://mirror.bit.edu.cn/apache/sqoop/1.99.6/sqoop-1.99.6-bin-hadoop200.tar.gz'
-    tar -zxvf sqoop-1.99.6-bin-hadoop200.tar.gz
-    mv sqoop-1.99.6-bin-hadoop200 /usr/local/sqoop
     wget 'http://mirror.bit.edu.cn/apache/sqoop/1.4.6/sqoop-1.4.6.bin__hadoop-2.0.4-alpha.tar.gz'
+    tar -zxvf sqoop-1.4.6.bin__hadoop-2.0.4-alpha.tar.gz
+    mv sqoop-1.4.6.bin__hadoop-2.0.4-alpha /usr/local/sqoop
+    /usr/local/sqoop/bin/sqoop list-databases --connect jdbc:mysql://localhost:3306/ --username root --password wochacha
+    /usr/local/sqoop/bin/sqoop list-tables --connect jdbc:mysql://localhost:3306/test --username root --password wochacha
+
+    #hbase
     bin/sqoop import --connect jdbc:mysql://127.0.0.1/wochacha_test \
     --username root --password wochacha \
     --query "select *from sdb_b2c_orders where 1=1 and \$CONDITIONS" \
     --hbase-table orders --hbase-create-table --hbase-row-key order_id \
     --split-by order_id --column-family b2c
+
+    #hive
+    bin/sqoop create-hive-table --connect jdbc:mysql://127.0.0.1:3306/wochacha_test \
+    --table sdb_base_kvstore \
+    --username root --password wochacha \
+    --hive-table sdb_base_kvstore
+
+    bin/sqoop import --connect jdbc:mysql://localhost:3306/wochacha_test --username root --password wochacha --table sdb_base_kvstore --hive-import
 }
 
 function config_thrift()
@@ -701,4 +712,83 @@ EOF
     nohup /usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server-2.properties >/dev/null 2>&1 &
     #/usr/local/kafka/bin/kafka-topics.sh --zookeeper 127.0.0.1:2181 --delete --topic mytopic
     #/usr/local/kafka/bin/kafka-topics.sh --create --zookeeper 127.0.0.1:2181 --replication-factor 1 --partitions 1 --topic mytopic
+}
+
+function config_hive()
+{
+    wget 'http://archive.apache.org/dist/hive/hive-0.12.0/hive-0.12.0-bin.tar.gz'
+    tar -zxvf hive-0.12.0-bin
+    mv hive-0.12.0-bin /usr/local/hive
+    cd /usr/local/hive/conf
+    cp hive-default.xml.template hive-site.xml
+    cp /usr/local/hadoop/share/hadoop/common/hadoop-common-2.2.0.jar /usr/local/hive/lib/
+    cp /usr/local/hbase/lib/hbase-client-0.96.0-hadoop2.jar /usr/local/hive/lib/
+    sed -i 's/\/tmp\/hive-${user.name}/hdfs:\/\/localhost:8020\/user\/hive\/warehouse/g' hive-site.xml
+    sed -i 's/jdbc:derby:;databaseName=metastore_db;create=true/jdbc:mysql:\/\/127.0.0.1:3306\/hive?characterEncoding=UTF-8/g' hive-site.xml
+    #javax.jdo.option.ConnectionUserName
+    #javax.jdo.option.ConnectionPassword
+    :<<MULTILINECOMMENT
+diff hive-default.xml.template /root/hive-site.xml
+83c83
+<   <value>/tmp/hive-${user.name}</value>
+---
+>   <value>hdfs://da-master:8020/user/hive/warehouse</value>
+132c132
+<   <value>jdbc:derby:;databaseName=metastore_db;create=true</value>
+---
+>   <value>jdbc:mysql://192.168.1.16:3306/hive?characterEncoding=UTF-8</value>
+138c138
+<   <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+---
+>   <value>com.mysql.jdbc.Driver</value>
+162c162
+<   <value>APP</value>
+---
+>   <value>hive</value>
+168c168
+<   <value>mine</value>
+---
+>   <value>hive</value>
+252c252
+<   <value>/user/hive/warehouse</value>
+---
+>   <value>hdfs://da-master:8020/user/hive/warehouse</value>
+2000c2000
+<   <value>auth</auth>
+---
+>   <value>auth</value>
+2012c2012
+<   <value>true</value>
+---
+>   <value>false</value>
+2021,2022c2021,2024
+<
+<
+---
+>  <property>
+>     <name>hive.aux.jars.path</name>
+>     <value>file:///hadoop/app/hive/lib/hive-hbase-handler-0.13.0.jar,file:///hadoop/app/hive/lib/hive-service-0.13.0.jar,file:///hadoop/app/hive/lib/hive-service-0.13.0-tests.jar,file:///hadoop/app/hive/lib/hive-service-0.13.0.jar,file:///hadoop/app/hive/lib/hadoop-common-2.2.0.jar,file:///hadoop/app/hive/lib/hbase-client-0.96.0-hadoop2.jar,file:///hadoop/app/hive/lib/zookeeper-3.4.3.jar,file:///hadoop/app/hive/lib/nexr-hive-udf-0.2-SNAPSHOT.jar</value>
+>   </property>
+<property>
+   <name>hive.metastore.local</name>
+   <value>false</value>
+</property>
+
+<property>
+   <name>hive.metastore.uris</name>
+   <value>thrift://ecgp:9083</value>
+</property>
+MULTILINECOMMENT
+    nohup /usr/local/hive/bin/hive --service metastore >/dev/null 2>&1 &
+    nohup /usr/local/hive/bin/hive --service hiveserver2 >/dev/null 2>&1 &
+}
+
+function config_pig()
+{
+    echo ''
+}
+
+function config_ambari()
+{
+    echo ''
 }
