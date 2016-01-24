@@ -4,6 +4,25 @@ import urllib2
 import urllib
 import StringIO
 import gzip
+from pyquery import PyQuery as pq
+from lxml import etree
+from pyquery import PyQuery as pq
+from lxml import etree
+
+
+def pyquery_down():
+    v_source=pq(url='http://yunvs.com/list/mai_1.html')
+    for data in v_source('tr'):
+        v_code = pq(data).find('td').eq(0).text()
+        v_name = pq(data).find('td').eq(1).text()
+        v_ind = pq(data).find('td').eq(5)
+
+        for i in range(len(pq(v_ind).find('a'))):
+            v_indname = pq(v_ind).find('a').eq(i).text()
+            print v_code
+            print v_name
+            print v_indname
+
 
 
 class myhttp(object):
@@ -58,3 +77,4 @@ if __name__ == '__main__':
     mh = myhttp()
     data = mh.http_get('http://www.baidu.com')
     print(data)
+    pyquery_down()

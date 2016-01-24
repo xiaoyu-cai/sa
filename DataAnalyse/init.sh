@@ -792,3 +792,10 @@ function config_ambari()
 {
     echo ''
 }
+
+
+function config_hue()
+{
+
+    yum -y install sqlite-devel
+}
