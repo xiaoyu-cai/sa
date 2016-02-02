@@ -403,3 +403,9 @@ function install_config_mycat()
     tar -zxvf Mycat-server-1.4-release-20151019230038-linux.tar.gz
     mv mycat /usr/local/mycat
 }
+
+function config_pycharm_debug()
+{
+    scp /Applications/PyCharm.app/Contents/debug-eggs/pycharm-debug.egg root@192.168.200.61:/usr/src/
+    easy_install pycharm-debug.egg
+}

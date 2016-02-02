@@ -797,5 +797,8 @@ function config_ambari()
 function config_hue()
 {
 
-    yum -y install sqlite-devel
+    git clone https://github.com/cloudera/hue.git
+    cd hue
+    make apps
+    build/env/bin/hue runserver 0.0.0.0:8000
 }
