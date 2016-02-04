@@ -77,3 +77,9 @@ function config_repo()
     createrepo /data/mirrors/centos/6/os/x86_64/
     yum-arch -l /data/mirrors/centos/6/os/x86_64/
 }
+
+
+function config_nagios()
+{
+    echo ''
+}
