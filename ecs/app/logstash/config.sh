@@ -91,8 +91,8 @@ function config_iptables_nagios()
     curl op.sdo.com/download/prelin/iptables.sh -o /bin/iptables.sh
     chmod +x /bin/iptables.sh
     netstat -tnlp
-    #/sbin/iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-    #/sbin/iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+/sbin/iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+/sbin/iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 
     echo "kern.=debug /var/log/iptables.log" >> /etc/syslog.conf
     /etc/init.d/syslog restart
