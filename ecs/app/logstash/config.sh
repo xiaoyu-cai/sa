@@ -119,6 +119,7 @@ eofdefine service {
                 use                                   srv-pnp
                 contact_groups                        +admins
 }
+eof
     /opt/nagios/bin/nagios -v /opt/nagios/etc/nagios.cfg
     /etc/init.d/nagios reload
 }
