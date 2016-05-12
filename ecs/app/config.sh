@@ -83,16 +83,3 @@ function config_nagios()
 {
     echo ''
 }
-
-
-function config_ruby()
-{
-    wget https://ruby.taobao.org/mirrors/ruby/ruby-2.1.2.tar.gz
-    tar zxvf ruby-2.1.2.tar.gz
-    cd ruby-2.1.2
-    ./configure
-    make && make install
-    gem source -r https://rubygems.org/
-    gem sources -a https://ruby.taobao.org/
-    gem sources -l
-}

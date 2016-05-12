@@ -17,7 +17,7 @@ function install_zabbix()
     wget 'http://jaist.dl.sourceforge.net/project/zabbix/ZABBIX%20Latest%20Stable/3.0.1/zabbix-3.0.1.tar.gz'
     tar -zxvf zabbix-3.0.1.tar.gz
     cd zabbix-3.0.1
-    yum -y install net-snmp-devel curl-devel
+    yum -y install mysql-devel net-snmp-devel curl-devel
     ./configure --prefix=/usr/local/zabbix --enable-server --enable-agent --enable-proxy --with-mysql --with-net-snmp --with-libcurl
     make
     mv /usr/local/zabbix /usr/local/zabbix_1.8

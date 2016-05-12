@@ -139,3 +139,10 @@ echo "Modifing the /etc/sysctl.conf has been succeed."
 echo "Now make the changes take effect....."
 sysctl -p
 }
+
+preusers
+predir
+prelimits
+prelogin
+preprofile
+presysctl
